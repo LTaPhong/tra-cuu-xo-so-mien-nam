@@ -59,6 +59,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
   const getDayOfWeekFromDate = (dateString: string): DayOfWeek | null => {
     if (!dateString) return null;
     const date = new Date(dateString);
+    // Ensure we're getting the day based on local date interpretation, not UTC
     const localDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     return localDate.getDay() as DayOfWeek;
   };
@@ -78,14 +79,12 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
   
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(e.target.value);
-    // setLotteryNumber(''); // User might want to keep number if only changing date
   };
 
   const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const provinceCode = e.target.value;
     const province = provinces.find(p => p.code === provinceCode) || null;
     setSelectedProvince(province);
-    // setLotteryNumber(''); // User might want to keep number if only changing province
   };
 
   const handleLotteryNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,10 +119,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
 
 
           if (result.provinceName) {
-            // Try to find an exact match first (Gemini should return one from the list)
             let foundProvince = provinces.find(p => p.name === result.provinceName);
-            
-            // Fallback: If no exact match, try a normalized comparison (more robust)
             if (!foundProvince) {
                 const normalizedOcrProvince = normalizeString(result.provinceName);
                 foundProvince = provinces.find(p => normalizeString(p.name) === normalizedOcrProvince);
@@ -138,13 +134,12 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
           }
 
           if (result.drawDate && /^\d{4}-\d{2}-\d{2}$/.test(result.drawDate)) {
-             // Basic validation: check if date is plausible (e.g., not too far in past/future)
             const dateParts = result.drawDate.split('-').map(Number);
-            const ocrDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            const ocrDateObj = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
             const currentYear = new Date().getFullYear();
-            if (ocrDate.getFullYear() >= currentYear - 5 && ocrDate.getFullYear() <= currentYear + 5) {
+            if (ocrDateObj.getUTCFullYear() >= currentYear - 5 && ocrDateObj.getUTCFullYear() <= currentYear + 5) {
                  setSelectedDate(result.drawDate);
-                 messages.push(`Ngày: ${new Date(result.drawDate + 'T00:00:00').toLocaleDateString('vi-VN')}`);
+                 messages.push(`Ngày: ${ocrDateObj.toLocaleDateString('vi-VN', { timeZone: 'UTC' })}`);
             } else {
                 messages.push(`Ngày OCR (không hợp lệ): ${result.drawDate}`);
             }
@@ -157,7 +152,6 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
           } else {
             setOcrError("Không nhận diện được thông tin nào từ ảnh. Vui lòng thử ảnh rõ hơn.");
           }
-          // console.log("Gemini Raw Text:", result.rawText); // For debugging
         }
       } catch (err) {
         console.error("OCR Processing Error:", err);
@@ -189,12 +183,12 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
           id="date"
           value={selectedDate}
           onChange={handleDateChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out"
+          className="w-full px-2 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out text-sm sm:text-base"
           required
         />
         {selectedDate && currentDayOfWeek !== null && (
           <p className="text-xs text-gray-500 mt-1">
-            Ngày được chọn: {new Date(selectedDate + 'T00:00:00').toLocaleDateString('vi-VN')} ({DAY_OF_WEEK_MAP_VI[currentDayOfWeek as DayOfWeek]})
+            Ngày được chọn: {new Date(selectedDate + 'T00:00:00Z').toLocaleDateString('vi-VN', {timeZone: 'UTC'})} ({DAY_OF_WEEK_MAP_VI[currentDayOfWeek as DayOfWeek]})
           </p>
         )}
       </div>
@@ -207,7 +201,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
           id="province"
           value={selectedProvince?.code || ''}
           onChange={handleProvinceChange}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out"
+          className="w-full px-2 sm:px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out"
           required
           disabled={!selectedDate || availableProvinces.length === 0}
         >
@@ -229,7 +223,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
             value={lotteryNumber}
             onChange={handleLotteryNumberChange}
             placeholder="Nhập số vé"
-            className="flex-grow w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out"
+            className="flex-grow w-full px-2 sm:px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition duration-150 ease-in-out"
             required
             pattern="\d{2,6}"
             title="Nhập từ 2 đến 6 chữ số"
@@ -269,7 +263,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
         <button
           type="submit"
           disabled={isLoading || ocrLoading || !selectedProvince || !selectedDate || !lotteryNumber || !/^\d{2,6}$/.test(lotteryNumber)}
-          className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+          className="w-full sm:flex-1 flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-150 ease-in-out"
         >
           <SearchIcon />
           {isLoading ? 'Đang tra cứu...' : 'Tra Cứu Kết Quả'}
@@ -277,7 +271,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({
         <button
           type="button"
           onClick={() => {
-            setSelectedDate('');
+            setSelectedDate(new Date().toISOString().split('T')[0]); // Reset date to today
             setSelectedProvince(null);
             setLotteryNumber('');
             resetFormAndResults(); 

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://LTaPhong.github.io/tra-cuu-xo-so-mien-nam/",
+  "homepage": "https://ltaphong.github.io/tra-cuu-xo-so-mien-nam/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
