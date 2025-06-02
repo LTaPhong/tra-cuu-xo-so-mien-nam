@@ -9,15 +9,13 @@ export interface OcrResult {
   error?: string;
   rawText?: string; // For debugging
 }
-
-
 export const performOcrWithGemini = async (
   base64ImageData: string,
   mimeType: string,
   provinceNames: string[]
 ): Promise<OcrResult> => {
   try {
-    const response = await fetch('http://localhost:3001/api/ocr', {
+    const response = await fetch('https://ocr-backend-jdbq.onrender.com/api/ocr', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ base64ImageData, mimeType, provinceNames })
