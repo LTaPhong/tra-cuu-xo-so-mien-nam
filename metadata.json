@@ -1,0 +1,5 @@
+{
+  "name": "Tra Cứu Xổ Số Việt Nam",
+  "description": "Một ứng dụng web để tra cứu kết quả xổ số Việt Nam theo tỉnh và ngày, với tính năng nhập số vé thủ công hoặc qua OCR từ ảnh vé số.",
+  "requestFramePermissions": []
+}
