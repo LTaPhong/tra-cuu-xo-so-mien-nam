@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Xổ Số</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+      html {
+        height: 100%; /* Đảm bảo html chiếm toàn bộ chiều cao */
+      }
+      body {
+        min-height: 100%; /* Đảm bảo body có thể mở rộng ít nhất bằng chiều cao viewport */
+        overflow-y: auto;  /* Cho phép body cuộn dọc nếu nội dung vượt quá */
+        margin: 0; /* Reset margin mặc định */
+        display: flex; 
+        flex-direction: column;
+      }
+      #root {
+        flex-grow: 1; /* Cho phép #root chiếm không gian còn lại trong body (nếu body là flex) */
+        display: flex; 
+        flex-direction: column;
+      }
+
+      /* Custom animation for fade in */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      /* Custom animation for fade in up */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeInUp {
+        animation: fadeInUp 0.5s ease-in-out;
+      }
+      /* Style for tesseract progress bar if needed, though inline style is used in component */
+      .tesseract-progress-bar {
+          transition: width 0.1s ease-in-out;
+      }
+    </style>
+
+<link rel="stylesheet" href="/index.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "@google/genai": "https://esm.sh/@google/genai"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-D_Zh7mDa.js"></script>
+</head>
+<body class="bg-gray-100"> <!-- Tailwind's bg-gray-100 vẫn sẽ được áp dụng -->
+    <div id="root"></div>
+</body>
+</html>
