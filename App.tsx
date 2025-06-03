@@ -9,17 +9,9 @@ import { PROVINCES, PRIZE_CATEGORIES } from './constants';
 import type { Province, WinningResult, ParsedPrizeDetail, ApiLotteryResponse, ApiLotteryResultItem, ApiLotteryPayload } from './types';
 import { fetchLotteryResults } from './services/lotteryService';
 
-const getTodayDateString = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = (today.getMonth() + 1).toString().padStart(2, '0');
-  const day = today.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const App: React.FC = () => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString()); // Set today's date as default
+  const [selectedDate, setSelectedDate] = useState<string>(''); // YYYY-MM-DD
   const [lotteryNumber, setLotteryNumber] = useState<string>('');
   const [winningResult, setWinningResult] = useState<WinningResult | null>(null);
   const [fullResults, setFullResults] = useState<ParsedPrizeDetail[] | null>(null);
@@ -29,7 +21,7 @@ const App: React.FC = () => {
   // Full reset for the reset button
   const fullReset = useCallback(() => {
     setSelectedProvince(null);
-    setSelectedDate(getTodayDateString()); // Reset to today's date
+    setSelectedDate('');
     setLotteryNumber('');
     setWinningResult(null);
     setFullResults(null);
@@ -112,10 +104,14 @@ const App: React.FC = () => {
       
       const results: ApiLotteryResponse = await fetchLotteryResults(selectedProvince.code);
       
+      // Access data via results.t (payload is now in 't' field)
+      // The service ensures results.t exists and results.t.issueList is an array.
       if (!results.t) {
+        // This case should ideally be handled by the service synthesizing 't',
+        // but as a fallback:
         setError(`Không nhận được dữ liệu kết quả cho ${selectedProvince.name} ngày ${apiDate}.`);
         setFullResults(null);
-        setIsLoading(false); 
+        setIsLoading(false); // Ensure loading is stopped
         return;
       }
 
@@ -146,22 +142,21 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    // When selectedDate or selectedProvince changes, clear previous results
-    // but keep the lottery number if user is just changing date/province for the same number
     setWinningResult(null);
     setFullResults(null);
-    setError(null); // Clear errors too
   }, [selectedProvince, selectedDate]);
 
 
   return (
-    <div className="flex-grow bg-gradient-to-br from-sky-100 via-indigo-50 to-purple-100 py-6 flex flex-col items-center sm:py-12 overflow-y-auto px-2"> {/* Added px-2 for overall mobile padding */}
-      {/* Container for the card and its skewed background effect */}
-      <div className="relative w-full sm:max-w-2xl md:max-w-4xl lg:max-w-5xl mx-auto overflow-hidden">
+    // Thay đổi min-h-screen thành flex-grow để hoạt động với #root { display: flex; flex-direction: column; }
+    // Màn hình tổng thể vẫn sẽ có chiều cao ít nhất bằng viewport do cài đặt body/html/root.
+    // Thêm overflow-y-auto ở đây để div cụ thể này tự cuộn nội dung nếu nó vượt quá viewport,
+    // vì #root và body giờ đây chủ yếu dùng cho cấu trúc.
+    <div className="flex-grow bg-gradient-to-br from-sky-100 via-indigo-50 to-purple-100 py-6 flex flex-col items-center sm:py-12 overflow-y-auto">
+      <div className="relative py-3 sm:max-w-xl md:max-w-4xl lg:max-w-5xl w-full px-4"> {/* Adjusted overall card width from previous steps */}
         <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-indigo-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-        {/* White card for content */}
-        <div className="relative px-2 py-10 bg-white shadow-2xl sm:rounded-3xl sm:px-6 sm:py-10 md:px-10 md:py-12">
-          <div className="w-full"> 
+        <div className="relative px-4 py-10 bg-white shadow-2xl sm:rounded-3xl sm:p-10 md:p-12">
+          <div className="w-full"> {/* Changed from max-w-md mx-auto to w-full */}
             <div className="text-center">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mx-auto text-sky-600 mb-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
@@ -196,7 +191,7 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
-       <footer className="text-center mt-8 text-sm text-gray-500 px-4 pb-6">
+       <footer className="text-center mt-8 text-sm text-gray-500 px-4 pb-6"> {/* Thêm pb-6 để có thêm không gian */}
         <p>&copy; {new Date().getFullYear()} Tra Cứu Xổ Số. Dữ liệu tham khảo từ xoso188.net.</p>
         <p>Kết quả chỉ mang tính chất tham khảo. Không dùng cho mục đích cá cược, cờ bạc.</p>
       </footer>
